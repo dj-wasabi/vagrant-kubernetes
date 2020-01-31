@@ -26,8 +26,8 @@
   - name: Install docker and its dependecies
     apt:
       name:
-        - docker-ce 
-        - docker-ce-cli 
+        - docker-ce
+        - docker-ce-cli
         - containerd.io
       state: present
       update_cache: yes
@@ -56,21 +56,27 @@
   - name: Install Kubernetes binaries
     apt:
       name:
-        - kubelet 
-        - kubeadm 
+        - kubelet
+        - kubeadm
         - kubectl
       state: present
       update_cache: yes
+
+  - name: Configure KUBELET_EXTRA_ARGS
+    copy:
+      dest: /etc/default/kubelet
+      content: KUBELET_EXTRA_ARGS=" --node-ip={{ node_ip }} "
+      mode: 0755
 
   - name: Restart kubelet
     service:
       name: kubelet
       daemon_reload: yes
       state: restarted
-    
+
   - name: Copy the join command to server location
     copy:
-      src: "join" 
+      src: /tmp/join
       dest: /tmp/join-command.sh
       mode: 0777
     become: false

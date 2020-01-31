@@ -24,10 +24,10 @@
       state: present
 
   - name: Install docker and its dependecies
-    apt: 
+    apt:
       name:
-        - docker-ce 
-        - docker-ce-cli 
+        - docker-ce
+        - docker-ce-cli
         - containerd.io
       state: present
       update_cache: yes
@@ -41,7 +41,7 @@
 
   - name: Disable swap
     command: swapoff -a
-    
+
   - name: Add an apt signing key for Kubernetes
     apt_key:
       url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
@@ -54,21 +54,27 @@
       filename: kubernetes.list
 
   - name: Install Kubernetes binaries
-    apt: 
+    apt:
       name:
-        - kubelet 
-        - kubeadm 
+        - kubelet
+        - kubeadm
         - kubectl
       state: present
       update_cache: yes
     register: installed
+
+  - name: Configure KUBELET_EXTRA_ARGS
+    copy:
+      dest: /etc/default/kubelet
+      content: KUBELET_EXTRA_ARGS=" --node-ip={{ node_ip }} "
+      mode: 0755
 
   - name: Restart kubelet
     service:
       name: kubelet
       daemon_reload: yes
       state: restarted
-    
+
   - name: Initialize the Kubernetes cluster using kubeadm
     command: kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name master --pod-network-cidr=192.168.0.0/16
     when: installed is changed
@@ -90,21 +96,20 @@
       path: /home/vagrant/.kube/config
       owner: vagrant
       group: vagrant
-    
+
   - name: Install calico pod network
     become: false
     command: kubectl apply -f https://docs.projectcalico.org/v3.10/manifests/calico.yaml
 
   - name: Generate join command
-    command: kubeadm token create --print-join-command
+    shell: kubeadm token create --print-join-command 2>/dev/null > /tmp/join
     register: join_command
 
   - name: Copy join command to local file
-    copy: 
-      dest: "join" 
-      content: "{{ join_command.stdout_lines[0] }}"
-    become: false
-    delegate_to: localhost
+    fetch:
+      src: /tmp/join
+      dest: /tmp/join
+      flat: True
 
   handlers:
     - name: docker status
