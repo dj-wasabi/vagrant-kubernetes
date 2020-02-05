@@ -114,14 +114,9 @@
       owner: vagrant
       group: vagrant
 
-  - name: Copy calico.yaml
-    copy:
-      src: calico.yaml
-      dest: /tmp/calico.yaml
-
   - name: Install calico pod network
     become: false
-    command: kubectl apply -f /tmp/calico.yaml
+    command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
   - name: Generate join command
     shell: kubeadm token create --print-join-command 2>/dev/null > /tmp/join
