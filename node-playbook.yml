@@ -2,6 +2,23 @@
 - hosts: all
   become: true
   tasks:
+
+  - name: "Update hosts file"
+    lineinfile:
+      path: /etc/hosts
+      line: '{{ item }}'
+    with_items:
+      - '{{ node_ip }} master'
+      - '10.10.1.11 node-1'
+      - '10.10.1.12 node-2'
+      - '10.10.1.13 node-3'
+
+  - name: Make sure group wheel is not in the sudoers configuration
+    lineinfile:
+      path: /etc/hosts
+      state: absent
+      regexp: '^127.0.1.1'
+
   - name: Install packages that allow apt to be used over HTTPS
     apt:
       name:
