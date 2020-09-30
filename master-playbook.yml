@@ -8,7 +8,7 @@
       path: /etc/hosts
       line: '{{ item }}'
     with_items:
-      - '{{ node_ip }} master'
+      - '10.10.1.10 master'
       - '10.10.1.11 node-1'
       - '10.10.1.12 node-2'
       - '10.10.1.13 node-3'
@@ -30,9 +30,19 @@
       state: present
       update_cache: yes
 
+  - name: Add an apt signing key for HELM
+    apt_key:
+      url: https://baltocdn.com/helm/signing.asc
+      state: present
+
   - name: Add an apt signing key for Docker
     apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+
+  - name: Add apt repository for HELM version
+    apt_repository:
+      repo: deb https://baltocdn.com/helm/stable/debian/ all main
       state: present
 
   - name: Add apt repository for stable version
@@ -76,6 +86,8 @@
         - kubelet
         - kubeadm
         - kubectl
+        - helm
+        - etcd-client
       state: present
       update_cache: yes
     register: installed
@@ -113,6 +125,7 @@
       path: /home/vagrant/.kube/config
       owner: vagrant
       group: vagrant
+      mode: 0400
 
   - name: Install calico pod network
     become: false

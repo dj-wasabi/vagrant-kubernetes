@@ -8,7 +8,7 @@
       path: /etc/hosts
       line: '{{ item }}'
     with_items:
-      - '{{ node_ip }} master'
+      - '10.10.1.10 master'
       - '10.10.1.11 node-1'
       - '10.10.1.12 node-2'
       - '10.10.1.13 node-3'
