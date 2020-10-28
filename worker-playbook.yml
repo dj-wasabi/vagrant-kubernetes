@@ -1,17 +1,17 @@
 ---
 - hosts: all
   become: true
-  tasks:
 
+  tasks:
   - name: "Update hosts file"
     lineinfile:
       path: /etc/hosts
       line: '{{ item }}'
     with_items:
-      - '10.10.1.10 master'
-      - '10.10.1.11 node-1'
-      - '10.10.1.12 node-2'
-      - '10.10.1.13 node-3'
+      - '{{ control_node_ip }} control'
+      - '10.10.1.11 worker-1'
+      - '10.10.1.12 worker-2'
+      - '10.10.1.13 worker-3'
 
   - name: Make sure group wheel is not in the sudoers configuration
     lineinfile:
@@ -30,19 +30,9 @@
       state: present
       update_cache: yes
 
-  - name: Add an apt signing key for HELM
-    apt_key:
-      url: https://baltocdn.com/helm/signing.asc
-      state: present
-
   - name: Add an apt signing key for Docker
     apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
-      state: present
-
-  - name: Add apt repository for HELM version
-    apt_repository:
-      repo: deb https://baltocdn.com/helm/stable/debian/ all main
       state: present
 
   - name: Add apt repository for stable version
@@ -59,7 +49,7 @@
       state: present
       update_cache: yes
     notify:
-        - docker status
+      - docker status
 
   - name: Add vagrant user to docker group
     user:
@@ -83,14 +73,11 @@
   - name: Install Kubernetes binaries
     apt:
       name:
-        - kubelet
-        - kubeadm
-        - kubectl
-        - helm
-        - etcd-client
+        - kubelet={{ k8s_version }}-00
+        - kubeadm={{ k8s_version }}-00
+        - kubectl={{ k8s_version }}-00
       state: present
       update_cache: yes
-    register: installed
 
   - name: Configure KUBELET_EXTRA_ARGS
     copy:
@@ -104,45 +91,18 @@
       daemon_reload: yes
       state: restarted
 
-  - name: Initialize the Kubernetes cluster using kubeadm
-    command: kubeadm init --apiserver-advertise-address="10.10.1.10" --apiserver-cert-extra-sans="10.10.1.10"  --node-name master --pod-network-cidr=192.168.0.0/16
-    when: installed is changed
-
-  - name: Create .kube folder
-    become: false
-    file:
-      path: /home/vagrant/.kube
-      state: directory
-
-  - name: Copy admin.conf file
+  - name: Copy the join command to server location
     copy:
-      src: /etc/kubernetes/admin.conf
-      dest: /home/vagrant/.kube/config
-      remote_src: True
-
-  - name: Change admin.conf owner
-    file:
-      path: /home/vagrant/.kube/config
-      owner: vagrant
-      group: vagrant
-      mode: 0400
-
-  - name: Install calico pod network
-    become: false
-    command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
-
-  - name: Generate join command
-    shell: kubeadm token create --print-join-command 2>/dev/null > /tmp/join
-    register: join_command
-
-  - name: Copy join command to local file
-    fetch:
       src: /tmp/join
-      dest: /tmp/join
-      flat: True
+      dest: /tmp/join-command.sh
+      mode: 0777
+    become: false
+
+  - name: Join the node to cluster
+    command: sh /tmp/join-command.sh
 
   handlers:
-    - name: docker status
-      service:
-        name: docker
-        state: started
+  - name: docker status
+    service:
+      name: docker
+      state: started
