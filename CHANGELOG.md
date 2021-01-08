@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased](https://github.com/dj-wasabi/vagrant-kubernetes/tree/HEAD)
+
+[Full Changelog](https://github.com/dj-wasabi/vagrant-kubernetes/compare/0.0.1...HEAD)
+
+**Implemented enhancements:**
+
+- Using a variable instead of hardcoded K8s version [\#2](https://github.com/dj-wasabi/vagrant-kubernetes/pull/2) ([dj-wasabi](https://github.com/dj-wasabi))
+
 ## [0.0.1](https://github.com/dj-wasabi/vagrant-kubernetes/tree/0.0.1) (2020-10-28)
 
 [Full Changelog](https://github.com/dj-wasabi/vagrant-kubernetes/compare/00af781882a8c6fed52419a8b46311da1769754f...0.0.1)
