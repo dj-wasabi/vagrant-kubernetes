@@ -1,4 +1,5 @@
 IMAGE_NAME = "ubuntu/bionic64"
+K8S_VERSION = "1.19.2"
 N = 2
 
 Vagrant.configure("2") do |config|
@@ -18,7 +19,7 @@ Vagrant.configure("2") do |config|
             ansible.playbook = "control-playbook.yml"
             ansible.extra_vars = {
                 node_ip: "10.10.1.10",
-                k8s_version: "1.19.3",
+                k8s_version: K8S_VERSION,
                 ansible_python_interpreter: "/usr/bin/python3",
             }
         end
@@ -34,7 +35,7 @@ Vagrant.configure("2") do |config|
                 ansible.extra_vars = {
                     control_node_ip: "10.10.1.10",
                     node_ip: "10.10.1.#{i + 10}",
-                    k8s_version: "1.19.3",
+                    k8s_version: K8S_VERSION,
                     ansible_python_interpreter: "/usr/bin/python3",
                 }
             end
