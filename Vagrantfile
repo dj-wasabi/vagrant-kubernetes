@@ -14,6 +14,7 @@ Vagrant.configure("2") do |config|
         control.vm.box = IMAGE_NAME
         control.vm.network "private_network", ip: "10.10.1.10"
         control.vm.hostname = "control"
+        config.vm.synced_folder "examples/resources/", "/opt/resources"
 
         control.vm.provision "ansible" do |ansible|
             ansible.playbook = "control-playbook.yml"
