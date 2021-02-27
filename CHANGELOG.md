@@ -6,6 +6,7 @@
 
 **Implemented enhancements:**
 
+- Added some very basic examples to stat, including main page with links to the excercises pages [\#3](https://github.com/dj-wasabi/vagrant-kubernetes/pull/3) ([dj-wasabi](https://github.com/dj-wasabi))
 - Using a variable instead of hardcoded K8s version [\#2](https://github.com/dj-wasabi/vagrant-kubernetes/pull/2) ([dj-wasabi](https://github.com/dj-wasabi))
 
 ## [0.0.1](https://github.com/dj-wasabi/vagrant-kubernetes/tree/0.0.1) (2020-10-28)
