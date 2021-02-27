@@ -5,6 +5,7 @@ Table of Content
   * [Setup](#setup)
   * [Kubernetes version](#kubernetes-version)
   * [Starting](#starting)
+  * [Examples](#examples)
   * [Credits](#credits)
 
 A small playground to experiment or play with Kubernetes on multiple Vagrant Ubuntu `ubuntu/bionic64` instances. So do not use this as a base for production like deployments (Kubespray for example).
@@ -16,6 +17,7 @@ Please make sure the following is installed before using this repo:
 * Ansible;
 * Vagrant;
 * VirtualBox;
+* Motivation!
 
 ## Setup
 
@@ -28,14 +30,12 @@ Each node has 2 CPU's configured with each 2GB of RAM. You can change this to yo
 
 ## Kubernetes version
 
-Kubernetes version 1.19.3 which can be changed in the `Vagrantfile` by looking for the `k8s_version` in the `ansible.extra_vars` property.
+Kubernetes version 1.19.2 which can be changed in the `Vagrantfile` by looking in the top of the file for the line that starts with: `K8S_VERSION`. You can set that to a more recent version of Kubernetes before you start everything.
 
 ```ruby
-    ansible.extra_vars = {
-        ...
-        k8s_version: "1.19.3",
-        ansible_python_interpreter: "/usr/bin/python3",
-    }
+    IMAGE_NAME = "ubuntu/bionic64"
+    K8S_VERSION = "1.19.2"
+    N = 2
 ```
 
 ## Starting
@@ -46,13 +46,17 @@ Once you are ready, run the following to start everything:
 vagrant up
 ```
 
-Once booted, use the following command to logon to the control node:
+Once everything is booted, use the following command to logon to the control node:
 
 ```sh
 vagrant ssh control
 ```
 
 You should be able to run `kubectl get nodes` now.
+
+## Examples
+
+In the `examples` directory, you can find some example questions that you can use to get familiar with Kubernetes.
 
 ## Credits
 
