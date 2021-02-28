@@ -56,7 +56,7 @@ You should be able to run `kubectl get nodes` now.
 
 ## Examples
 
-In the `examples` directory, you can find some example questions that you can use to get familiar with Kubernetes.
+In the `examples` [directory](examples/readme.md), you can find some example questions that you can use to get familiar with Kubernetes.
 
 ## Credits
 
