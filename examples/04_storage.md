@@ -86,9 +86,9 @@ Execute:
 ## ConfigMaps
 
 1. Create a configMap named `matters` and add the following keys:
-* WHO=<Your Name>
+* WHO=`<Your Name>`
 * WHAT=Awesome
-2. Create a Pod named `` and
+2. Create a Pod named `who-is-awesome` with the `nginx` image and make sure that both `WHO` and `WHAT` are set as environment variables.
 
 **Solutions**
 
@@ -98,7 +98,43 @@ Execute:
 
 Execute:
 
-    kubectl create configmap matters --from-literal=WHO=Werner --from-literal=WHAT=Awesome
+    $ kubectl create configmap matters --from-literal=WHO=Werner --from-literal=WHAT=pizza
+
+</details>
+
+<details>
+<summary>2. Create a Pod.</summary>
+<br>
+
+
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        run: who-is-awesome
+      name: who-is-awesome
+    spec:
+      containers:
+      - image: nginx
+        name: who-is-awesome
+        env:
+        - name: WHO
+          valueFrom:
+            configMapKeyRef:
+              name: matters
+              key: WHO
+        - name: WHAT
+          valueFrom:
+            configMapKeyRef:
+              name: matters
+              key: WHAT
+
+Execute:
+
+    $ kubectl create -f who-is-awesome.yaml
+    $ kubectl exec -it who-is-awesome -- env | egrep 'WHO|WHAT'
+    WHAT=pizza
+    WHO=Werner
 
 </details>
 
