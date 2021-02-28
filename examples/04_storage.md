@@ -138,8 +138,52 @@ Execute:
 
 </details>
 
-
-
 ## Secrets
 
+1. Create a secret named `db-info` with the following keys:
 
+* DB_HOST=mysql.host.com
+* DB_USERNAME=pizza
+* DB_PASSWORD=ILoveIt
+
+2. Create a Pod named `frontend` with the `nginx` image and set with one entry all secrets as environment variables in the container. 
+
+**Solutions**
+
+<details>
+<summary>1. Create a Secret.</summary>
+<br>
+
+    kubectl create secret generic db-info --from-literal=DB_HOST=mysql.host.com --from-literal=DB_USERNAME=pizza --from-literal=DB_PASSWORD=ILoveIt
+
+</details>
+
+<details>
+<summary>2. Create a Pod.</summary>
+<br>
+
+frontend-secret.yaml:
+
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        run: frontend
+      name: frontend
+    spec:
+      containers:
+      - image: nginx
+        name: frontend
+        envFrom:
+        - secretRef:
+            name: db-info
+
+Execute:
+
+    $ kubectl create -f frontend-secret.yaml
+    $ kubectl exec -it frontend -- env | grep ^DB
+    DB_PASSWORD=ILoveIt
+    DB_USERNAME=pizza
+    DB_HOST=mysql.host.com
+
+</details>
