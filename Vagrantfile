@@ -1,5 +1,5 @@
 IMAGE_NAME = "ubuntu/bionic64"
-K8S_VERSION = "1.19.2"
+K8S_VERSION = "1.20.2"
 N = 2
 
 Vagrant.configure("2") do |config|
