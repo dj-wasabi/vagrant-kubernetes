@@ -1,0 +1,19 @@
+
+- name: "Install Kubernetes binaries"
+  apt:
+    name:
+      - kubelet={{ k8s_version }}-00
+      - kubeadm={{ k8s_version }}-00
+      - kubectl={{ k8s_version }}-00
+    state: present
+    update_cache: yes
+
+- name: "Copy the join command to server location"
+  copy:
+    src: /tmp/join
+    dest: /tmp/join-command.sh
+    mode: 0777
+  become: false
+
+- name: "Join the node to cluster"
+  command: sh /tmp/join-command.sh

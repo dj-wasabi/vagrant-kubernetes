@@ -2,6 +2,11 @@
 - hosts: all
   become: true
 
+  vars:
+    containerd_version: 1.6.8
+    containerd_runc_version: 1.1.3
+    containerd_cni_plugin_version: 1.2.0
+
   tasks:
   - name: "Update hosts file"
     lineinfile:
@@ -19,90 +24,86 @@
       state: absent
       regexp: '^127.0.1.1'
 
-  - name: Install packages that allow apt to be used over HTTPS
-    apt:
-      name:
-        - apt-transport-https
-        - ca-certificates
-        - curl
-        - gnupg-agent
-        - software-properties-common
-      state: present
-      update_cache: yes
+  - name: "Install Kubernetes basics"
+    ansible.builtin.include_tasks: "{{ playbook_dir }}//includes/k8s-basics.yml"
 
-  - name: Add an apt signing key for Docker
-    apt_key:
-      url: https://download.docker.com/linux/ubuntu/gpg
-      state: present
+  - name: "Install Kubernetes Worker node"
+    ansible.builtin.include_tasks: "{{ playbook_dir }}//includes/k8s-worker.yml"
 
-  - name: Add apt repository for stable version
-    apt_repository:
-      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
-      state: present
 
-  - name: Install docker and its dependecies
-    apt:
-      name:
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
-      state: present
-      update_cache: yes
-    notify:
-      - docker status
+  # - name: Add an apt signing key for Docker
+  #   apt_key:
+  #     url: https://download.docker.com/linux/ubuntu/gpg
+  #     state: present
 
-  - name: Add vagrant user to docker group
-    user:
-      name: vagrant
-      group: docker
+  # - name: Add apt repository for stable version
+  #   apt_repository:
+  #     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+  #     state: present
 
-  - name: Disable swap
-    command: swapoff -a
+  # - name: Install docker and its dependecies
+  #   apt:
+  #     name:
+  #       - docker-ce
+  #       - docker-ce-cli
+  #       - containerd.io
+  #     state: present
+  #     update_cache: yes
+  #   notify:
+  #     - docker status
 
-  - name: Add an apt signing key for Kubernetes
-    apt_key:
-      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-      state: present
+  # - name: Add vagrant user to docker group
+  #   user:
+  #     name: vagrant
+  #     group: docker
 
-  - name: Adding apt repository for Kubernetes
-    apt_repository:
-      repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-      state: present
-      filename: kubernetes.list
+  # - name: Disable swap
+  #   command: swapoff -a
 
-  - name: Install Kubernetes binaries
-    apt:
-      name:
-        - kubelet={{ k8s_version }}-00
-        - kubeadm={{ k8s_version }}-00
-        - kubectl={{ k8s_version }}-00
-      state: present
-      update_cache: yes
+  # - name: Add an apt signing key for Kubernetes
+  #   apt_key:
+  #     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  #     state: present
 
-  - name: Configure KUBELET_EXTRA_ARGS
-    copy:
-      dest: /etc/default/kubelet
-      content: KUBELET_EXTRA_ARGS=" --node-ip={{ node_ip }} "
-      mode: 0755
+  # - name: Adding apt repository for Kubernetes
+  #   apt_repository:
+  #     repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+  #     state: present
+  #     filename: kubernetes.list
 
-  - name: Restart kubelet
-    service:
-      name: kubelet
-      daemon_reload: yes
-      state: restarted
+  # - name: Install Kubernetes binaries
+  #   apt:
+  #     name:
+  #       - kubelet={{ k8s_version }}-00
+  #       - kubeadm={{ k8s_version }}-00
+  #       - kubectl={{ k8s_version }}-00
+  #     state: present
+  #     update_cache: yes
 
-  - name: Copy the join command to server location
-    copy:
-      src: /tmp/join
-      dest: /tmp/join-command.sh
-      mode: 0777
-    become: false
+  # - name: Configure KUBELET_EXTRA_ARGS
+  #   copy:
+  #     dest: /etc/default/kubelet
+  #     content: KUBELET_EXTRA_ARGS=" --node-ip={{ node_ip }} "
+  #     mode: 0755
 
-  - name: Join the node to cluster
-    command: sh /tmp/join-command.sh
+  # - name: Restart kubelet
+  #   service:
+  #     name: kubelet
+  #     daemon_reload: yes
+  #     state: restarted
 
-  handlers:
-  - name: docker status
-    service:
-      name: docker
-      state: started
+  # - name: Copy the join command to server location
+  #   copy:
+  #     src: /tmp/join
+  #     dest: /tmp/join-command.sh
+  #     mode: 0777
+  #   become: false
+
+  # - name: Join the node to cluster
+  #   command: sh /tmp/join-command.sh
+
+  # handlers:
+  # - name: docker status
+  #   service:
+  #     name: docker
+  #     state: started

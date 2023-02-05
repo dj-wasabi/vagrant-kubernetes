@@ -1,0 +1,87 @@
+---
+
+- name: Install Kubernetes binaries
+  ansible.builtin.apt:
+    name:
+      - kubelet={{ k8s_version }}-00
+      - kubeadm={{ k8s_version }}-00
+      - kubectl={{ k8s_version }}-00
+      - helm
+      - etcd-client
+    state: present
+    update_cache: yes
+  register: installed
+
+- name: Initialize the Kubernetes cluster using kubeadm
+  ansible.builtin.command: kubeadm init --apiserver-advertise-address="{{ node_ip }}" --apiserver-cert-extra-sans="{{ node_ip }}"  --node-name control --pod-network-cidr=192.168.0.0/16
+  when: installed is changed
+
+- name: Create .kube folder
+  become: false
+  ansible.builtin.file:
+    path: /home/vagrant/.kube
+    state: directory
+
+- name: Copy admin.conf file
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/vagrant/.kube/config
+    remote_src: True
+
+- name: Change admin.conf owner
+  ansible.builtin.file:
+    path: /home/vagrant/.kube/config
+    owner: vagrant
+    group: vagrant
+    mode: 0400
+
+- name: Create .kube folder
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /opt/data/kubernetes
+    - /opt/data/kubernetes/network/
+
+- name: "Download Calico operator"
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/tigera-operator.yaml
+    dest: /opt/data/kubernetes/network/tigera-operator.yaml
+    mode: 0644
+  register: _calico_operator_download
+
+- name: "Download Calico custome resources"
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/custom-resources.yaml
+    dest: /opt/data/kubernetes/network/custom-resources.yaml
+    mode: 0644
+  register: _calico_custom_resources_download
+
+- name: "Install calico operator"
+  become: false
+  ansible.builtin.command: kubectl create -f /opt/data/kubernetes/network/tigera-operator.yaml
+  when:
+    - _calico_operator_download.changed
+
+- name: "Install calico custom resources"
+  become: false
+  ansible.builtin.command: kubectl create -f /opt/data/kubernetes/network/custom-resources.yaml
+  when:
+    - _calico_custom_resources_download.changed
+
+- name: "Bash autocompletion"
+  ansible.builtin.shell: kubectl completion bash >> ~/.bashrc
+  become: false
+  when:
+    - _calico_operator_download.changed
+
+- name: Generate join command
+  ansible.builtin.shell: kubeadm token create --print-join-command 2>/dev/null > /tmp/join
+  changed_when: join_command.rc != 0
+  register: join_command
+
+- name: Copy join command to local file
+  ansible.builtin.fetch:
+    src: /tmp/join
+    dest: /tmp/join
+    flat: True
