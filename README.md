@@ -30,11 +30,11 @@ Each node has 2 CPU's configured with each 2GB of RAM. You can change this to yo
 
 ## Kubernetes version
 
-Kubernetes version 1.19.2 which can be changed in the `Vagrantfile` by looking in the top of the file for the line that starts with: `K8S_VERSION`. You can set that to a more recent version of Kubernetes before you start everything.
+Kubernetes version 1.25.0 which can be changed in the `Vagrantfile` by looking in the top of the file for the line that starts with: `K8S_VERSION`. You can set that to a more recent version of Kubernetes before you start everything. But you can also keep the current version and upgrade to a newer version, which is also part of the CKA exam. ;-)
 
 ```ruby
     IMAGE_NAME = "ubuntu/bionic64"
-    K8S_VERSION = "1.19.2"
+    K8S_VERSION = "1.25.0"
     N = 2
 ```
 

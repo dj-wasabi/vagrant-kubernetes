@@ -1,0 +1,127 @@
+- name: Install packages that allow apt to be used over HTTPS
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    state: present
+    update_cache: yes
+
+- name: Add an apt signing key for HELM
+  ansible.builtin.apt_key:
+    url: https://baltocdn.com/helm/signing.asc
+    state: present
+
+- name: Add apt repository for HELM version
+  ansible.builtin.apt_repository:
+    repo: deb https://baltocdn.com/helm/stable/debian/ all main
+    state: present
+
+- name: Add an apt signing key for Kubernetes
+  ansible.builtin.apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Adding apt repository for Kubernetes
+  ansible.builtin.apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: kubernetes.list
+
+- name: "Configure Modules"
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/k8s.conf
+    content: |
+      overlay
+      br_netfilter
+
+- name: Disable modules
+  ansible.builtin.shell: |
+    modprobe overlay
+    modprobe br_netfilter
+
+- name: "Configure Modules"
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/k8s.conf
+    content: |
+      net.bridge.bridge-nf-call-iptables  = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.ipv4.ip_forward                 = 1
+  register: sysctl_restart
+
+- name: "sysctl restart"
+  ansible.builtin.shell: sysctl --system
+  when:
+    - sysctl_restart.changed
+
+- name: Disable swap
+  ansible.builtin.command: swapoff -a
+
+- name: "Create some directories"
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /etc/containerd
+    - /opt/cni
+    - /opt/cni/bin
+
+- name: "Download containerd"
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+    dest: /etc/systemd/system/containerd.service
+    mode: 0644
+
+- name: "Download containerd"
+  ansible.builtin.get_url:
+    url: https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz
+    dest: /usr/local/containerd-{{ containerd_version }}-linux-amd64.tar.gz
+    mode: 0644
+  register: _containerd_download
+
+- name: "Install containerd"
+  ansible.builtin.shell: |
+    cd /usr/local
+    tar xzf containerd-{{ containerd_version }}-linux-amd64.tar.gz
+  when:
+    - _containerd_download.changed
+
+- name: "Download RunC"
+  ansible.builtin.get_url:
+    url: https://github.com/opencontainers/runc/releases/download/v{{ containerd_runc_version }}/runc.amd64
+    dest: /usr/local/runc.amd64
+    mode: 0644
+  register: _containerd_runc_download
+
+- name: "Install RunC"
+  ansible.builtin.shell: install -m 755 /usr/local/runc.amd64 /usr/local/sbin/runc
+  when:
+    - _containerd_runc_download.changed
+
+- name: "Download containerd cni"
+  ansible.builtin.get_url:
+    url: https://github.com/containernetworking/plugins/releases/download/v{{ containerd_cni_plugin_version }}/cni-plugins-linux-amd64-v{{ containerd_cni_plugin_version }}.tgz
+    dest: /usr/local/cni-plugins-linux-amd64-v{{ containerd_cni_plugin_version }}.tgz
+    mode: 0644
+  register: _containderd_cni_plugin_download
+
+- name: "Install containerd cni"
+  ansible.builtin.shell: |
+    tar Cxzvf /opt/cni/bin /usr/local/cni-plugins-linux-amd64-v{{ containerd_cni_plugin_version }}.tgz
+  when:
+    - _containderd_cni_plugin_download.changed
+
+- name: "Create default containerd Configuration"
+  ansible.builtin.shell: |
+    containerd config default | sed  's/SystemdCgroup \= false/SystemdCgroup \= true/g' > /etc/containerd/config.toml
+    systemctl daemon-reload
+  args:
+    creates: /etc/containerd/config.toml
+
+- name: "Start ContainerD"
+  systemd:
+    name: containerd
+    state: started
+    daemon_reload: true
