@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/dj-wasabi/vagrant-kubernetes/tree/HEAD)
+## [0.1.0](https://github.com/dj-wasabi/vagrant-kubernetes/tree/0.1.0) (2023-02-05)
 
-[Full Changelog](https://github.com/dj-wasabi/vagrant-kubernetes/compare/0.0.1...HEAD)
+[Full Changelog](https://github.com/dj-wasabi/vagrant-kubernetes/compare/0.0.1...0.1.0)
 
 **Implemented enhancements:**
 
