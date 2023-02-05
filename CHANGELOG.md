@@ -6,6 +6,8 @@
 
 **Implemented enhancements:**
 
+- Updating to Kubernetes 1.25 [\#5](https://github.com/dj-wasabi/vagrant-kubernetes/pull/5) ([dj-wasabi](https://github.com/dj-wasabi))
+- Added new set of files with some questions [\#4](https://github.com/dj-wasabi/vagrant-kubernetes/pull/4) ([dj-wasabi](https://github.com/dj-wasabi))
 - Added some very basic examples to stat, including main page with links to the excercises pages [\#3](https://github.com/dj-wasabi/vagrant-kubernetes/pull/3) ([dj-wasabi](https://github.com/dj-wasabi))
 - Using a variable instead of hardcoded K8s version [\#2](https://github.com/dj-wasabi/vagrant-kubernetes/pull/2) ([dj-wasabi](https://github.com/dj-wasabi))
 
