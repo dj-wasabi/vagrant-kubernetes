@@ -8,6 +8,18 @@
     state: present
     update_cache: yes
 
+- name: "Configure KUBELET_EXTRA_ARGS"
+  ansible.builtin.copy:
+    dest: /etc/default/kubelet
+    content: KUBELET_EXTRA_ARGS=" --node-ip={{ node_ip }} "
+    mode: 0755
+
+- name: "Restart kubelet"
+  ansible.builtin.service:
+    name: kubelet
+    daemon_reload: yes
+    state: restarted
+
 - name: "Copy the join command to server location"
   copy:
     src: /tmp/join

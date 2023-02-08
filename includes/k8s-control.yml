@@ -12,6 +12,18 @@
     update_cache: yes
   register: installed
 
+- name: "Configure KUBELET_EXTRA_ARGS"
+  ansible.builtin.copy:
+    dest: /etc/default/kubelet
+    content: KUBELET_EXTRA_ARGS=" --node-ip={{ node_ip }} "
+    mode: 0755
+
+- name: "Restart kubelet"
+  ansible.builtin.service:
+    name: kubelet
+    daemon_reload: yes
+    state: restarted
+
 - name: Initialize the Kubernetes cluster using kubeadm
   ansible.builtin.command: kubeadm init --apiserver-advertise-address="{{ node_ip }}" --apiserver-cert-extra-sans="{{ node_ip }}"  --node-name control --pod-network-cidr=192.168.0.0/16
   when: installed is changed
