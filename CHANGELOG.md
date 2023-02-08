@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased](https://github.com/dj-wasabi/vagrant-kubernetes/tree/HEAD)
+
+[Full Changelog](https://github.com/dj-wasabi/vagrant-kubernetes/compare/0.1.0...HEAD)
+
+**Implemented enhancements:**
+
+- Added missing 'KUBELET\_EXTRA\_ARGS' with --node-ip [\#6](https://github.com/dj-wasabi/vagrant-kubernetes/pull/6) ([dj-wasabi](https://github.com/dj-wasabi))
+
 ## [0.1.0](https://github.com/dj-wasabi/vagrant-kubernetes/tree/0.1.0) (2023-02-05)
 
 [Full Changelog](https://github.com/dj-wasabi/vagrant-kubernetes/compare/0.0.1...0.1.0)
